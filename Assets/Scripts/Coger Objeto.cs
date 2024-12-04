@@ -1,11 +1,11 @@
 using System.Collections;
 using UnityEngine;
-using TMPro; // Importar TextMeshPro
+using TMPro; // Importar TextMeshPro para el marcador
 
 public class CogerObjeto : MonoBehaviour
 {
-    public GameObject handPoint; // Punto donde se lleva el objeto
-    private GameObject pickedObject = null; // Objeto recogido actualmente
+    public GameObject handPoint; // El punto en la mano donde se lleva el objeto
+    private GameObject pickedObject = null; // El objeto que el jugador está sosteniendo
 
     // Referencia al marcador en la UI
     public TMP_Text contadorTexto;
@@ -19,8 +19,8 @@ public class CogerObjeto : MonoBehaviour
         {
             pickedObject.GetComponent<Rigidbody>().useGravity = true;
             pickedObject.GetComponent<Rigidbody>().isKinematic = false;
-            pickedObject.transform.SetParent(null);
-            pickedObject = null;
+            pickedObject.transform.SetParent(null); // El objeto ya no será hijo de la mano
+            pickedObject = null; // Ya no hay objeto en las manos
         }
     }
 
@@ -29,11 +29,13 @@ public class CogerObjeto : MonoBehaviour
         // Recoger objeto con la tecla "E"
         if (other.gameObject.CompareTag("Objeto") && Input.GetKey("e") && pickedObject == null)
         {
-            other.GetComponent<Rigidbody>().useGravity = false;
-            other.GetComponent<Rigidbody>().isKinematic = true;
-            other.transform.position = handPoint.transform.position;
-            other.transform.SetParent(handPoint.transform);
-            pickedObject = other.gameObject;
+            other.GetComponent<Rigidbody>().useGravity = false; // Desactivar la gravedad para que el objeto no caiga
+            other.GetComponent<Rigidbody>().isKinematic = true; // Hacer que el objeto no se vea afectado por la física
+            other.transform.position = handPoint.transform.position; // Colocar el objeto en la mano
+            other.transform.SetParent(handPoint.transform); // El objeto se convierte en hijo de la mano
+            pickedObject = other.gameObject; // Guardamos el objeto en la variable pickedObject
+
+            other.gameObject.GetComponent<Renderer>().enabled = true;
         }
     }
 
@@ -54,7 +56,6 @@ public class CogerObjeto : MonoBehaviour
             if (objetosEntregados >= totalObjetos)
             {
                 contadorTexto.text = "¡Todos los objetos han sido entregados!";
-               
             }
         }
     }
