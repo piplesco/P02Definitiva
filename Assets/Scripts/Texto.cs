@@ -3,37 +3,43 @@ using UnityEngine.UI; // Importar para usar UI
 
 public class Texto : MonoBehaviour
 {
-    public Text contadorTexto; // Referencia al texto del contador
-    private int objetosEntregados = 0; // Contador de objetos entregados
-    public int totalObjetos = 3; // Total de objetos necesarios
+  public float speed;
+  public float angle;
+  public Vector3 direction;
+
+  public bool puedeAbrir;
+
+ 
 
     void Start()
     {
-        // Inicializar el texto del contador
-        ActualizarContador();
+      angle = transform.eulerAngles.y;
     }
 
-    public void EntregarObjeto()
+    void Update()
     {
-        // Incrementar el contador de objetos entregados
-        objetosEntregados++;
-        Debug.Log("Objeto entregado: " + objetosEntregados + "/" + totalObjetos);
-
-        // Actualizar el texto del contador
-        ActualizarContador();
-
-        // Verificar si se han entregado todos los objetos
-        if (objetosEntregados >= totalObjetos)
-        {
-            Debug.Log("¡Has entregado todos los objetos!");
-            // Aquí puedes añadir la lógica del final del juego
-        }
+       if(Mathf.Round(transform.eulerAngles.y) != angle){ 
+       transform.Rotate(direction * speed);
+       }
+       if(Input.GetButtonDown("f") && puedeAbrir == true){
+       angle= 80;
+       direction= Vector3.up;
+       }
     }
 
-    private void ActualizarContador()
-    {
-        // Actualizar el texto con la cantidad actual de objetos
-        contadorTexto.text = "objetos: " + objetosEntregados + "/" + totalObjetos;
+    void OnTriggerStay(Collider other){
+    
+    if(other.gameObject.tag == "Player"){
+    puedeAbrir = true;
     }
+    }
+    void OnTriggerExit(Collider other){
+    
+    if(other.gameObject.tag == "Player"){
+    puedeAbrir = false;
+    }
+    }
+
+    
 }
 

@@ -53,16 +53,18 @@ public class CogerObjeto : MonoBehaviour
             // Verificar si se han entregado todos los objetos
             if (objetosEntregados >= totalObjetos)
             {
-            contadorTexto.text = "¡Todos los objetos han sido entregados!";
-                
+                contadorTexto.text = "¡Todos los objetos han sido entregados!";
+               
             }
         }
     }
 
+    // Asegúrate de que este método esté fuera de otros métodos
     private void ActualizarContador()
     {
         // Actualizar el texto del marcador
         contadorTexto.text = "OBJETOS: " + objetosEntregados + "/" + totalObjetos;
     }
 }
+
 
