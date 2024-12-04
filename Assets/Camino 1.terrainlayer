@@ -8,7 +8,7 @@ TerrainLayer:
   m_PrefabAsset: {fileID: 0}
   m_Name: Camino 1
   m_DiffuseTexture: {fileID: 2800000, guid: 6bf483bd0da16394888eb4babe9f2063, type: 3}
-  m_NormalMapTexture: {fileID: 2800000, guid: 392986e4c37ab524ca17aed9ad12a04f, type: 3}
+  m_NormalMapTexture: {fileID: 0}
   m_MaskMapTexture: {fileID: 0}
   m_TileSize: {x: 10, y: 10}
   m_TileOffset: {x: 0, y: 0}
