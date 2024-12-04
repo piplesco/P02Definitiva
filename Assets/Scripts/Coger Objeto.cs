@@ -1,44 +1,39 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using TMPro; // Importar TextMeshPro
 
 public class CogerObjeto : MonoBehaviour
 {
-    public GameObject handPoint;
-    private GameObject pickedObject = null;
+    public GameObject handPoint; // Punto donde se lleva el objeto
+    private GameObject pickedObject = null; // Objeto recogido actualmente
 
-    // Marcador de progreso
-    private int objetosEntregados = 0;
+    // Referencia al marcador en la UI
+    public TMP_Text contadorTexto;
+    private int objetosEntregados = 0; // Contador de objetos entregados
     public int totalObjetos = 3; // Total de objetos necesarios
 
     void Update()
     {
-        // Soltar objeto
-        if (pickedObject != null)
+        // Soltar objeto con la tecla "R"
+        if (pickedObject != null && Input.GetKey("r"))
         {
-            if (Input.GetKey("r"))
-            {
-                pickedObject.GetComponent<Rigidbody>().useGravity = true;
-                pickedObject.GetComponent<Rigidbody>().isKinematic = false;
-                pickedObject.transform.SetParent(null);
-                pickedObject = null;
-            }
+            pickedObject.GetComponent<Rigidbody>().useGravity = true;
+            pickedObject.GetComponent<Rigidbody>().isKinematic = false;
+            pickedObject.transform.SetParent(null);
+            pickedObject = null;
         }
     }
 
     private void OnTriggerStay(Collider other)
     {
-        // Recoger objeto
-        if (other.gameObject.CompareTag("Objeto"))
+        // Recoger objeto con la tecla "E"
+        if (other.gameObject.CompareTag("Objeto") && Input.GetKey("e") && pickedObject == null)
         {
-            if (Input.GetKey("e") && pickedObject == null)
-            {
-                other.GetComponent<Rigidbody>().useGravity = false;
-                other.GetComponent<Rigidbody>().isKinematic = true;
-                other.transform.position = handPoint.transform.position;
-                other.transform.SetParent(handPoint.transform);
-                pickedObject = other.gameObject;
-            }
+            other.GetComponent<Rigidbody>().useGravity = false;
+            other.GetComponent<Rigidbody>().isKinematic = true;
+            other.transform.position = handPoint.transform.position;
+            other.transform.SetParent(handPoint.transform);
+            pickedObject = other.gameObject;
         }
     }
 
@@ -47,19 +42,27 @@ public class CogerObjeto : MonoBehaviour
         // Detectar interacción con el baúl
         if (other.gameObject.CompareTag("Baul") && pickedObject != null)
         {
-            // Incrementar marcador y destruir el objeto
+            // Incrementar el contador y actualizar la UI
             objetosEntregados++;
-            Debug.Log("Objetos entregados: " + objetosEntregados + "/" + totalObjetos);
+            ActualizarContador();
 
+            // Destruir el objeto entregado
             Destroy(pickedObject);
             pickedObject = null;
 
-            // Comprobar si se entregaron todos los objetos
+            // Verificar si se han entregado todos los objetos
             if (objetosEntregados >= totalObjetos)
             {
-                Debug.Log("¡Todos los objetos han sido entregados!");
-                // Aquí puedes implementar lo que sucede al completar la misión
+            contadorTexto.text = "¡Todos los objetos han sido entregados!";
+                
             }
         }
     }
+
+    private void ActualizarContador()
+    {
+        // Actualizar el texto del marcador
+        contadorTexto.text = "OBJETOS: " + objetosEntregados + "/" + totalObjetos;
+    }
 }
+
