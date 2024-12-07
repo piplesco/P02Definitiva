@@ -3,11 +3,10 @@ using UnityEngine;
 public class EnemigoZombie : MonoBehaviour
 {
     public Animator animator;
-    public float velocidadMovimiento = 100f;  // Velocidad de caminar
+    public float velocidadMovimiento = 5f;  // Velocidad de caminar (ahora más rápida)
     public float distanciaDeteccion = 10f;  // Distancia para detectar al jugador
-    public float distanciaAtaque = 2f;  // Distancia mínima para atacar
-    public Transform jugador;  // Transform del jugador
-    public float velocidadPersecucion = 5f;  // Velocidad de persecución
+    public Transform jugador;  // El Transform del jugador
+    public float velocidadPersecucion = 5f;  // Velocidad de persecución al jugador
     public Rigidbody rb;  // Rigidbody del zombie
     private bool estaPersiguiendo = false;
 
@@ -15,51 +14,45 @@ public class EnemigoZombie : MonoBehaviour
     public float intervaloGiro = 5f;  // Intervalo de tiempo para cambiar dirección
     private float cronometroGiro = 0f;
     private Vector3 direccionMovimiento;
-    private bool estaDetenido = false;  // Verificar si el zombie está detenido
+    private bool estaDetenido = false;  // Para verificar si el zombie está detenido
 
-    // Variables para detección de obstáculos
-    public float distanciaRaycast = 2f;  // Distancia del raycast
-    public LayerMask capaObstaculos;  // Capas para detectar obstáculos
-
-    private bool estaAtacando = false;  // Estado de ataque
+    // Variables para la detección de obstáculos
+    public float distanciaRaycast = 2f;  // Distancia del raycast para detectar obstáculos
+    public LayerMask capaObstaculos;  // Capas en las que el raycast detectará obstáculos
 
     void Start()
     {
-        jugador = GameObject.FindGameObjectWithTag("Player").transform;  // Buscar jugador por etiqueta
-        animator = GetComponent<Animator>();  // Obtener Animator
-        rb = GetComponent<Rigidbody>();  // Obtener Rigidbody
-        direccionMovimiento = transform.forward;  // Dirección inicial
+        jugador = GameObject.FindGameObjectWithTag("Player").transform;  // Buscar al jugador por su etiqueta
+        animator = GetComponent<Animator>();  // Obtener el Animator del zombie
+        rb = GetComponent<Rigidbody>();  // Obtener el Rigidbody del zombie
+
+        // Inicializar dirección de movimiento hacia adelante
+        direccionMovimiento = transform.forward;
     }
 
     void Update()
     {
-        // Calcular distancia con el jugador
-        float distancia = Vector3.Distance(transform.position, jugador.position);
+        // Detectar si el zombie está cerca del jugador
+        float distancia = Vector3.Distance(transform.position, jugador.position);  // Calcular distancia entre el zombie y el jugador
 
-        if (distancia < distanciaAtaque)
+        if (distancia < distanciaDeteccion)
         {
-            AtacarJugador();  // Si está cerca, ataca
-        }
-        else if (distancia < distanciaDeteccion)
-        {
-            estaAtacando = false;  // Dejar de atacar si no está tan cerca
-            animator.SetBool("IsAttacking", false);  // Desactivar animación de ataque
-            estaPersiguiendo = true;  // Comienza a perseguir
+            estaPersiguiendo = true;  // Si está cerca, empieza a perseguir
         }
         else
         {
-            estaAtacando = false;  // Dejar de atacar si está muy lejos
-            animator.SetBool("IsAttacking", false);  // Desactivar animación de ataque
-            estaPersiguiendo = false;  // Dejar de perseguir
+            estaPersiguiendo = false;  // Si se aleja, detiene la persecución
         }
 
-        if (estaPersiguiendo && !estaAtacando)
+        if (estaPersiguiendo)
         {
-            PerseguirJugador();  // Persigue al jugador
+            PerseguirJugador();  // Si está persiguiendo, lo sigue
+            animator.SetBool("Atacar", true);  // Activar la animación de ataque
         }
-        else if (!estaPersiguiendo && !estaAtacando)
+        else
         {
-            MoverZombie();  // Movimiento aleatorio controlado
+            MoverZombie();  // Si no está persiguiendo, camina en una dirección controlada
+            animator.SetBool("Atacar", false);  // Desactivar la animación de ataque
         }
     }
 
@@ -67,73 +60,66 @@ public class EnemigoZombie : MonoBehaviour
     {
         cronometroGiro += Time.deltaTime;
 
+        // Verificar si han pasado los 5 segundos
         if (cronometroGiro >= intervaloGiro && !estaDetenido)
         {
-            animator.SetBool("IsWalking", false);
-            estaDetenido = true;
+            // Detener el zombie
+            animator.SetBool("Andar", false);  // Desactivar la animación de caminar
+            estaDetenido = true;  // Marcar que el zombie está detenido
+
+            // Resetear el cronómetro de giro
             cronometroGiro = 0f;
         }
 
         if (estaDetenido)
         {
-            if (cronometroGiro >= 1f)
+            // Esperar un momento antes de empezar a caminar de nuevo
+            // Después de detenerse, realizar el giro y activar el movimiento
+            if (cronometroGiro >= 1f)  // Espera 1 segundo antes de girar
             {
-                float giroAleatorio = Random.Range(-90f, 90f);
-                direccionMovimiento = Quaternion.Euler(0, giroAleatorio, 0) * transform.forward;
-                estaDetenido = false;
-                animator.SetBool("IsWalking", true);
+                // Girar el zombie a una nueva dirección aleatoria
+                float giroAleatorio = Random.Range(-90f, 90f);  // Elige un ángulo aleatorio entre -90 y 90 grados
+                direccionMovimiento = Quaternion.Euler(0, giroAleatorio, 0) * transform.forward;  // Rotar la dirección hacia el nuevo ángulo
+
+                // Volver a caminar en la nueva dirección
+                estaDetenido = false;  // El zombie ya no está detenido
+                animator.SetBool("Andar", true);  // Activar la animación de caminar
             }
         }
 
         if (!estaDetenido)
         {
+            // Detectar obstáculos con un raycast
             RaycastHit hit;
             if (Physics.Raycast(transform.position, direccionMovimiento, out hit, distanciaRaycast, capaObstaculos))
             {
-                float giroAleatorio = Random.Range(-90f, 90f);
-                direccionMovimiento = Quaternion.Euler(0, giroAleatorio, 0) * transform.forward;
+                // Si detecta un obstáculo, girar en la dirección opuesta
+                float giroAleatorio = Random.Range(-90f, 90f);  // Girar aleatoriamente
+                direccionMovimiento = Quaternion.Euler(0, giroAleatorio, 0) * transform.forward;  // Cambiar dirección
             }
 
-            Quaternion rotacionObjetivo = Quaternion.LookRotation(direccionMovimiento);
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, rotacionObjetivo, 180 * Time.deltaTime);
+            // Girar suavemente sobre su eje antes de moverse
+            Quaternion rotacionObjetivo = Quaternion.LookRotation(direccionMovimiento);  // Calcular rotación hacia la nueva dirección
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, rotacionObjetivo, 180 * Time.deltaTime);  // Rotar suavemente
 
-            Vector3 movimiento = direccionMovimiento * velocidadMovimiento * Time.deltaTime;
-            rb.MovePosition(rb.position + movimiento);
+            // Mover al zombie en la dirección en la que está mirando
+            Vector3 movimiento = direccionMovimiento * velocidadMovimiento * Time.deltaTime;  // Mover en la dirección calculada
+            rb.MovePosition(rb.position + movimiento);  // Mover el zombie usando el Rigidbody
         }
     }
 
     void PerseguirJugador()
     {
+        // Mover hacia el jugador
         Vector3 direccion = jugador.position - transform.position;
-        direccion.y = 0;
-        Quaternion rotacion = Quaternion.LookRotation(direccion);
-        transform.rotation = Quaternion.Slerp(transform.rotation, rotacion, Time.deltaTime * 5);
+        direccion.y = 0;  // Mantener la rotación en el plano horizontal (evitar cambios de altura)
+        Quaternion rotacion = Quaternion.LookRotation(direccion);  // Calcular rotación hacia el jugador
+        transform.rotation = Quaternion.Slerp(transform.rotation, rotacion, Time.deltaTime * 5);  // Rotar suavemente hacia el jugador
 
+        // Mover hacia el jugador
         Vector3 movimiento = direccion.normalized * velocidadPersecucion * Time.deltaTime;
-        rb.MovePosition(rb.position + movimiento);
+        rb.MovePosition(rb.position + movimiento);  // Mover el zombie usando el Rigidbody
 
-        animator.SetBool("IsWalking", true);
-    }
-
-    void AtacarJugador()
-    {
-        if (!estaAtacando)  // Solo atacar si no está ya atacando
-        {
-            estaAtacando = true;  // Marcar estado de ataque
-            animator.SetBool("IsWalking", false);  // Detener animación de caminar
-            animator.SetBool("IsAttacking", true);  // Activar animación de ataque
-
-            // Opcional: detener el movimiento mientras ataca
-            rb.velocity = Vector3.zero;
-
-            // Salir del estado de ataque después de la animación
-            Invoke(nameof(DetenerAtaque), 1.5f);  // Ajusta este tiempo según la duración de tu animación
-        }
-    }
-
-    void DetenerAtaque()
-    {
-        estaAtacando = false;
-        animator.SetBool("IsAttacking", false);
+        animator.SetBool("Andar", true);  // Activar animación de caminar
     }
 }
